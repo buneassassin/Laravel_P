@@ -11,26 +11,32 @@ class AhorcadoController extends Controller
     {
         $palabras = ['laravel', 'insomnia', 'php', 'framework']; // Palabras posibles
         $palabra = $palabras[array_rand($palabras)]; // Seleccionar una palabra aleatoria
-
-        // Generar la respuesta inicial del juego con 6 intentos
+    
+        // Crear la respuesta con la cookie que almacena la palabra original
         return response()->json([
             'palabra' => str_repeat('_', strlen($palabra)), // Ocultar la palabra
             'letras_adivinadas' => [],
             'intentos_restantes' => 6,
             'mensaje' => 'Juego iniciado. ¡Empieza a adivinar!',
-            'palabra_original' => $palabra // Mandar la palabra original para manejar el juego en el cliente
-        ]);
+        ])->cookie('palabra_original', $palabra, 60); // Almacenar la palabra original en la cookie (60 minutos)
     }
+    
 
     // Adivinar una letra
     public function adivinar(Request $request)
     {
-        // Obtener la palabra original, las letras adivinadas, y los intentos restantes del cliente
-        $palabra = $request->input('palabra_original');
+        // Recuperar la palabra original desde la cookie
+        $palabra = $request->cookie('palabra_original');
+        if (!$palabra) {
+            return response()->json([
+                'mensaje' => 'No hay juego en progreso. Inicia un nuevo juego.',
+            ], 400);
+        }
+    
         $letra = strtolower($request->input('letra'));
         $letras_adivinadas = $request->input('letras_adivinadas', []);
         $intentos_restantes = $request->input('intentos_restantes');
-
+    
         // Verificar si la letra ya fue adivinada
         if (in_array($letra, $letras_adivinadas)) {
             return response()->json([
@@ -39,15 +45,15 @@ class AhorcadoController extends Controller
                 'letras_adivinadas' => $letras_adivinadas,
             ]);
         }
-
+    
         // Agregar la letra a las letras adivinadas
         $letras_adivinadas[] = $letra;
-
+    
         // Verificar si la letra está en la palabra
         if (strpos($palabra, $letra) !== false) {
             // Mostrar la palabra oculta con las letras adivinadas
             $palabra_oculta = $this->mostrarPalabraOculta($palabra, $letras_adivinadas);
-
+    
             // Verificar si el jugador ha ganado
             if ($palabra_oculta === $palabra) {
                 return response()->json([
@@ -55,14 +61,13 @@ class AhorcadoController extends Controller
                     'palabra' => $palabra,
                 ]);
             }
-
+    
             // Continuar si la letra es correcta
             return response()->json([
                 'mensaje' => 'Letra correcta',
                 'palabra_oculta' => $palabra_oculta,
                 'letras_adivinadas' => $letras_adivinadas,
                 'intentos_restantes' => $intentos_restantes,
-                'palabra_original' => $palabra
             ]);
         } else {
             // Reducir los intentos si la letra es incorrecta
@@ -73,17 +78,17 @@ class AhorcadoController extends Controller
                     'palabra' => $palabra,
                 ]);
             }
-
+    
             // Continuar si la letra es incorrecta
             return response()->json([
                 'mensaje' => 'Letra incorrecta',
                 'palabra_oculta' => $this->mostrarPalabraOculta($palabra, $letras_adivinadas),
                 'letras_adivinadas' => $letras_adivinadas,
                 'intentos_restantes' => $intentos_restantes,
-                'palabra_original' => $palabra
             ]);
         }
     }
+    
 
     // Función para mostrar la palabra oculta con las letras adivinadas
     private function mostrarPalabraOculta($palabra, $letras_adivinadas)

@@ -30,7 +30,6 @@ Route::post('persona', [MultiplicacionController::class, 'store']);
 Route::post('crud', [MultiplicacionController::class, 'insert']);
 
 use App\Http\Controllers\AhorcadoController;
-
-Route::post('/iniciar', [AhorcadoController::class, 'iniciarJuego']);
+Route::post('/iniciar-juego', [AhorcadoController::class, 'iniciarJuego']);
 Route::post('/adivinar', [AhorcadoController::class, 'adivinar']);
 

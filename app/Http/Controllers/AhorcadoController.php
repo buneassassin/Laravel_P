@@ -11,7 +11,7 @@ class AhorcadoController extends Controller
     {
         $palabras = ['laravel', 'insomnia', 'php', 'framework']; // Palabras posibles
         $palabra = $palabras[array_rand($palabras)]; // Seleccionar una palabra aleatoria
-    
+
         // Crear la respuesta con las cookies que almacenan la palabra original, las letras adivinadas y los intentos restantes
         return response()->json([
             'palabra' => str_repeat('_', strlen($palabra)), // Ocultar la palabra
@@ -19,31 +19,31 @@ class AhorcadoController extends Controller
             'intentos_restantes' => 6,
             'mensaje' => 'Juego iniciado. ¡Empieza a adivinar!',
         ])
-        ->cookie('palabra_original', $palabra, 60)          // Almacenar la palabra original (60 minutos)
-        ->cookie('letras_adivinadas', json_encode([]), 60)   // Inicialmente, letras adivinadas está vacío
-        ->cookie('intentos_restantes', 6, 60);               // Intentos iniciales
+            ->cookie('palabra_original', $palabra, 60)          // Almacenar la palabra original (60 minutos)
+            ->cookie('letras_adivinadas', json_encode([]), 60)   // Inicialmente, letras adivinadas está vacío
+            ->cookie('intentos_restantes', 6, 60);               // Intentos iniciales
     }
-    
-    
+
+
 
     // Adivinar una letra
-    public function adivinar(Request $request)
+    public function adivinar(Request $request, $letra)
     {
         // Recuperar la palabra original, letras adivinadas y los intentos restantes desde las cookies
         $palabra = $request->cookie('palabra_original');
-        $letras_adivinadas = json_decode($request->cookie('letras_adivinadas', '[]'), true); // Por defecto, es un array vacío
+        $letras_adivinadas = json_decode($request->cookie('letras_adivinadas', '[]'), true);
         $intentos_restantes = $request->cookie('intentos_restantes', 6);
-    
+
         // Verificar si no hay un juego en progreso
         if (!$palabra) {
             return response()->json([
                 'mensaje' => 'No hay juego en progreso. Inicia un nuevo juego.',
             ], 400);
         }
-    
+
         // Procesar la letra adivinada
-        $letra = strtolower($request->input('letra'));
-    
+        $letra = strtolower($letra);
+
         // Verificar si la letra ya fue adivinada
         if (in_array($letra, $letras_adivinadas)) {
             return response()->json([
@@ -52,59 +52,54 @@ class AhorcadoController extends Controller
                 'letras_adivinadas' => $letras_adivinadas,
             ]);
         }
-    
+
         // Agregar la letra a las letras adivinadas
         $letras_adivinadas[] = $letra;
-    
+
         // Verificar si la letra está en la palabra
         if (strpos($palabra, $letra) !== false) {
             // Mostrar la palabra oculta con las letras adivinadas
             $palabra_oculta = $this->mostrarPalabraOculta($palabra, $letras_adivinadas);
-    
+
             // Verificar si el jugador ha ganado
             if ($palabra_oculta === $palabra) {
-                // Si ganó, no es necesario actualizar las cookies
                 return response()->json([
                     'mensaje' => '¡Felicidades! Has ganado.',
                     'palabra' => $palabra,
-                ])->withoutCookie('palabra_original')         // Eliminar cookies al ganar
-                  ->withoutCookie('letras_adivinadas')
-                  ->withoutCookie('intentos_restantes');
+                ])->withoutCookie('palabra_original')
+                    ->withoutCookie('letras_adivinadas')
+                    ->withoutCookie('intentos_restantes');
             }
-    
-            // Actualizar las cookies y continuar el juego
+
             return response()->json([
                 'mensaje' => 'Letra correcta',
                 'palabra_oculta' => $palabra_oculta,
                 'letras_adivinadas' => $letras_adivinadas,
                 'intentos_restantes' => $intentos_restantes,
-            ])
-            ->cookie('letras_adivinadas', json_encode($letras_adivinadas), 60);
+            ])->cookie('letras_adivinadas', json_encode($letras_adivinadas), 60);
         } else {
             // Reducir los intentos si la letra es incorrecta
             $intentos_restantes--;
             if ($intentos_restantes <= 0) {
-                // Si pierde, eliminar las cookies
                 return response()->json([
                     'mensaje' => 'Has perdido',
                     'palabra' => $palabra,
                 ])->withoutCookie('palabra_original')
-                  ->withoutCookie('letras_adivinadas')
-                  ->withoutCookie('intentos_restantes');
+                    ->withoutCookie('letras_adivinadas')
+                    ->withoutCookie('intentos_restantes');
             }
-    
-            // Actualizar las cookies y continuar el juego
+
             return response()->json([
                 'mensaje' => 'Letra incorrecta',
                 'palabra_oculta' => $this->mostrarPalabraOculta($palabra, $letras_adivinadas),
                 'letras_adivinadas' => $letras_adivinadas,
                 'intentos_restantes' => $intentos_restantes,
-            ])
-            ->cookie('letras_adivinadas', json_encode($letras_adivinadas), 60)
-            ->cookie('intentos_restantes', $intentos_restantes, 60);
+            ])->cookie('letras_adivinadas', json_encode($letras_adivinadas), 60)
+                ->cookie('intentos_restantes', $intentos_restantes, 60);
         }
     }
-    
+
+
 
     // Función para mostrar la palabra oculta con las letras adivinadas
     private function mostrarPalabraOculta($palabra, $letras_adivinadas)

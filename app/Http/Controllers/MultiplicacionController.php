@@ -82,7 +82,7 @@ class MultiplicacionController extends Controller
         });
     }
 
-    public function store(Request $request)
+    public function stores(Request $request)
     {
         $validate = Validator::make($request->all(), [
             "nombre" => 'required|string|min:3|max:255',
@@ -102,36 +102,4 @@ class MultiplicacionController extends Controller
         ], 422);
     }
 
-    public function insert(Request $request)
-    {
-        $validate = Validator::make($request->all(), [
-            "nombre" => 'required|string|min:3|max:255',
-            "edad" => 'required|numeric',
-            "apellido_paterno" => 'required|string',
-            "apellido_materno" => 'required|string',
-            "phone" => 'required|numeric',
-            "email" => 'required|email',
-          
-           
-        ]);
-        if ($validate->fails()) {
-            return response()->json([
-                "msg" => "Error en validacion",
-                "error" => $validate->message(),
-            ], 422);
-        }
-        $Humano = new Humano();
-        $Humano->nombre = $request->nombre;
-        $Humano->apellido_paterno = $request->apellido_paterno;
-        $Humano->apellido_materno = $request->apellido_materno;
-        $Humano->edad = $request->edad;
-        $Humano->phone = $request->phone;
-        $Humano->email = $request->email;
-        
-        $Humano->save();
-        return response()->json([
-            "msg" => "Datos almacenados correctamente",
-            "data" => $Humano,
-        ], 422);
-    }
 }

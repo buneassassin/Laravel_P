@@ -25,11 +25,18 @@ Route::get('/multiplicar/{numero1?}/{numero2?}/{limiteFibonacci?}', [Multiplicac
 -> where('numero2', '[0-9]')
 -> where('limiteFibonacci', '[a-z]+');
 
-Route::post('persona', [MultiplicacionController::class, 'store']);
+Route::post('persona', [MultiplicacionController::class, 'stores']);
 
-Route::post('crud', [MultiplicacionController::class, 'insert']);
+use App\Http\Controllers\PhotoController;
+
+Route::get('/humanos', [PhotoController::class, 'index']);
+Route::get('/humanos/{id}', [PhotoController::class, 'show']);
+Route::post('/humanos', [PhotoController::class, 'store']);
+Route::put('/humanos/{id}', [PhotoController::class, 'update']);
+Route::delete('/humanos/{id}', [PhotoController::class, 'destroy']);
+
 
 use App\Http\Controllers\AhorcadoController;
 Route::post('/iniciar-juego', [AhorcadoController::class, 'iniciarJuego']);
-Route::post('/adivinar', [AhorcadoController::class, 'adivinar']);
+Route::post('/adivinar/{letra}', [AhorcadoController::class, 'adivinar']);
 

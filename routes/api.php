@@ -37,6 +37,7 @@ Route::delete('/humanos/{id}', [PhotoController::class, 'destroy']);
 
 
 use App\Http\Controllers\AhorcadoController;
-Route::post('/iniciar-juego', [AhorcadoController::class, 'iniciarJuego']);
-Route::post('/adivinar/{letra}', [AhorcadoController::class, 'adivinar']);
+Route::post('/ahorcado/{numero}/adivinar', [AhorcadoController::class, 'adivinar'])
+-> where('numero', '[1-9]');
+
 

@@ -8,11 +8,14 @@ use Faker\Provider\ar_EG\Person;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Nette\Utils\Strings;
+use Illuminate\Support\Facades\Http;
 
 class MultiplicacionController extends Controller
 {
     public function tablasMultiplicar($numero1 = 0, $numero2 = 0, $limiteFibonacci = '')
     {
+       
+        
         if ($limiteFibonacci === 'fibonacci') {
             // Generamos las tablas de ambos números
 
@@ -34,10 +37,17 @@ class MultiplicacionController extends Controller
             ], 200);
         }
         if ($numero2 <= 0) {
+            $response = Http::withToken('oat_Mg.YjI5OF8wVHdJb0JWVktWZ0dYdTlmMDUyc1JXazlPT1VzM215TU5vNzEwNTQ1NjUwMDc')
+            ->timeout(80)
+            ->get('http://localhost:3333/mascotas/3');
+            $datas = $response->json();
             $tabla1 = $this->generarTablaMultiplicar($numero1);
             return response()->json([
                 'numero1' => $numero1,
-                'tabla1' => $tabla1
+                'tabla1' => $tabla1,
+                'mascota' => $datas,
+                'hola'=> 'hola'
+
             ], 200);
         } else if ($numero1 > 0 | $numero2 > 0) {
             $tabla1 = $this->generarTablaMultiplicar($numero1);
@@ -47,7 +57,6 @@ class MultiplicacionController extends Controller
                 'tabla1' => $tabla1,
                 'numero2' => $numero2,
                 'tabla2' => $tabla2,
-
             ], 200);
         }
     }
